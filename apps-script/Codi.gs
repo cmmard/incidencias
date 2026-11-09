@@ -12,6 +12,12 @@
  *          perquè l'app mostri exactament les mateixes opcions.
  * doPost → afegeix una fila nova al full de respostes (mateix format que
  *          el formulari) i desa les fotos/vídeos a una carpeta de Drive.
+ *          Amb { accio: "incidencies", clau } retorna totes les incidències
+ *          per al panell de manteniment, només si la clau és correcta.
+ *
+ * Contrasenya del panell (no va al codi, així el codi pot ser públic):
+ *   Configuració del projecte (⚙) → Propietats de l'script →
+ *   Afegeix: Propietat = CLAU_PANELL, Valor = la contrasenya que vulguis.
  */
 
 const NOM_CARPETA = "Manteniment - adjunts app";
@@ -26,10 +32,17 @@ function doGet() {
 }
 
 function doPost(e) {
+  let dades;
+  try {
+    dades = JSON.parse(e.postData.contents);
+  } catch (err) {
+    return json({ ok: false, error: "Petició no vàlida" });
+  }
+  if (dades.accio === "incidencies") return llistaIncidencies(dades.clau);
+
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    const dades = JSON.parse(e.postData.contents);
     const respostes = dades.respostes || {};
     const full = fullRespostes();
 
@@ -75,6 +88,39 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/* ---------- Panell de manteniment ---------- */
+
+function llistaIncidencies(clau) {
+  const correcta = PropertiesService.getScriptProperties().getProperty("CLAU_PANELL");
+  if (!correcta) return json({ ok: false, error: "config", missatge: "Falta la propietat CLAU_PANELL a l'Apps Script." });
+  if (String(clau || "") !== correcta) {
+    Utilities.sleep(1500); // frena els intents de endevinar la contrasenya
+    return json({ ok: false, error: "clau", missatge: "Contrasenya incorrecta." });
+  }
+
+  const full = fullRespostes();
+  const zona = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  const rang = full.getDataRange();
+  const valors = rang.getValues();
+  const textos = rang.getDisplayValues();
+
+  const files = [];
+  for (let i = 1; i < valors.length; i++) {
+    if (!textos[i].some((t) => t !== "")) continue;
+    const marca = valors[i][0];
+    files.push({ marca: marca instanceof Date ? dataGviz(marca, zona) : String(marca), valors: textos[i] });
+  }
+  return json({ ok: true, files });
+}
+
+// Mateix format que feia servir el panell abans ("Date(2026,8,8,20,9,13)", mes 0–11),
+// perquè la gestió ja desada als navegadors continuï lligada a cada incidència.
+function dataGviz(d, zona) {
+  const p = Utilities.formatDate(d, zona, "yyyy,M,d,H,m,s").split(",").map(Number);
+  p[1] -= 1;
+  return "Date(" + p.join(",") + ")";
 }
 
 /* ---------- Ajudants ---------- */
