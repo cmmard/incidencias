@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1f3a">
+  <title>Nova Incidència</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <header class="barra">
+    <div class="contenedor">
+      <h1 class="logo">Nova <span>incidència</span></h1>
+      <p class="barra__sub">Comunica un problema a les instal·lacions esportives</p>
+    </div>
+  </header>
+
+  <main class="contenedor">
+
+    <section id="vistaCarregant" class="vista estat">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Carregant el formulari…</p>
+    </section>
+
+    <section id="vistaConfig" class="vista estat" hidden>
+      <h2>Falta connectar l'app</h2>
+      <p>Encara no s'ha configurat l'URL de l'Apps Script a <code>config.js</code>.</p>
+    </section>
+
+    <section id="vistaError" class="vista estat" hidden>
+      <h2>No s'ha pogut carregar</h2>
+      <p id="textError"></p>
+      <button id="btnReintentar" class="boto">Torna-ho a provar</button>
+    </section>
+
+    <form id="formulari" class="vista targeta" hidden novalidate>
+      <div id="avis" class="avis" role="alert" hidden></div>
+      <div id="camps"></div>
+      <button id="btnEnviar" type="submit" class="boto boto--gran">Envia la incidència</button>
+    </form>
+
+    <section id="vistaEnviat" class="vista estat" hidden>
+      <div class="ok" aria-hidden="true">✓</div>
+      <h2>Incidència enviada</h2>
+      <p>Gràcies. L'equip de manteniment ja la pot veure.</p>
+      <button id="btnNova" class="boto">Comunica'n una altra</button>
+    </section>
+
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
